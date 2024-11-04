@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic Issue Tracker</title>
+    <link rel="stylesheet" href="CANVAS.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+</head>
+<body>
+ <!-- Login Section -->
+    <div class="login-container" id="loginContainer" >
+        <img src="Screenshot 2024-09-03 113512.png" alt="Logo" class="login-logo">
+        <form id="loginForm">
+              <!-- Username Field with Icon -->
+    <div class="input-container">
+        <i class="fas fa-user icon"></i>
+        <input type="text" id="username" placeholder="Username" required>
+    </div>
+    
+    <!-- Password Field with Icon -->
+    <div class="input-container">
+        <i class="fas fa-lock icon"></i>
+        <input type="password" id="password" placeholder="Password" required>
+    </div>
+
+            <button type="submit"  id="loginBtn">Login</button>
+            <div id="loginError" style="color: red; display: none;">Invalid login details. Please try again.</div>
+        </form>
+    </div>
+    <div class="container"  id="Viewcontainer" style="display: none;"  >
+        <h1 class="issue-tracker-heading">Issue Tracker</h1>
+         <div id="notification" class="notification" style="display: none;"></div>
+          <button id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</button>
+          
+
+        <!-- Filter Section -->
+        <button id="toggleFilterBtn" onclick="toggleFilterForm()">Add Filters</button>
+        <div class="filter-container" id="filterContainer" style="display: none;">
+            <h2>Filter Issues</h2>
+            <form id="filterForm">
+                <label for="ecuFilter">ECU:</label>
+                <select id="ecuFilter" class="custom-width-dropdown">
+                    <option value="">All</option>
+                    <option value="VCU">VCU</option>
+                    <option value="VTMS">VTMS</option>
+                    <option value="DNR">DNR</option>
+                </select>
+
+                <label for="faultCodeFilter">Fault Code:</label>
+                <input type="text" id="faultCodeFilter" placeholder="Enter Fault Code" class="custom-width-dropdown">
+                
+                <button type="button" onclick="filterIssues()">Apply Filter</button>
+            </form>
+        </div>
+
+        <button id="toggleFormBtn" onclick="toggleForm()">Add Issue</button>
+
+        <div class="form-container" id="formContainer" style="display: none;">
+            <form id="issueForm">
+                <input type="hidden" id="editIndex">
+                <div class="flex-container">
+                    <label for="ecuName">ECU:</label>
+                    <select id="ecu" name="ecu" class="custom-width-dropdown">
+                        <option value="VCU">VCU</option>
+                        <option value="VTMS">VTMS</option>
+                        <option value="DNR">DNR</option>
+                    </select>
+
+                    <label for="issueTitle">Issue Title:</label>
+                    <div class="input-group"> <!-- New container for the input and icon -->
+                   <input type="text" id="issueTitle" class="custom-width-issueTitle" required readonly>
+                   <i class="fas fa-eye eye-icon" id="toggleVisibility"></i>
+                  </div>
+
+                    <label for="faultCode">Fault Code:</label>
+                   <input type="number" id="faultCode" class="custom-width-faultCode" required oninput="mapIssueTitle()">
+
+                    <label for="issueDescription">Issue Description:</label>
+                    <textarea   id="issueDescription" class="custom-width-issueDescription" rows="4" cols="50" placeholder="Enter the issue description here..."></textarea><br>
+
+                    <label for="issueLog">Log (Link):</label>
+                    <input type="url" id="issueLog" class="custom-width-issueLog" required>
+
+                    <label for="rootCause">RCA (Link):</label>
+                    <input type="url" id="rootCause" class="custom-width-rootCause" required>
+
+                    <label for="resolution">Resolution (Link):</label>
+                    <input type="url" id="resolution" class="custom-width-resolution" required>
+
+                    <label for="status">Status:</label>
+                    <select id="status" name="status" class="custom-width-dropdown">
+                        <option value="open">Open</option>
+                        <option value="inprogress">In Progress</option>
+                        <option value="closed">Closed</option>
+                    </select>
+                </div>
+
+                <button type="submit" id="submitBtn">Add Issue</button>
+            </form>
+        </div>
+
+   <div class="table-container">
+    <table>
+        <thead>
+            <tr>
+                <th>S.No</th>
+                <th>ECU Name</th>
+                <th>Issue Title</th>
+                <th>Fault Code</th>
+                <th>Issue Description</th>
+                <th>Issue Log</th>
+                <th>Root Cause Analysis</th>
+                <th>Resolution Process</th>
+                <th>Issue Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody id="issueTableBody">
+            <!-- Rows will be dynamically populated here -->
+        </tbody>
+    </table>
+</div>
+
+
+<!-- Analysis Section -->
+<div class="analysis-section"  style="display: none;">
+    <h2>RCA</h2>
+    <div class="share-section">
+        <button id="shareImage" class="share-button">Share</button>
+        <!-- The email input and submit button are initially hidden -->
+        <div id="emailInputContainer" style="display:none;">
+            <input type="email" id="recipientEmail" placeholder="Enter recipient email" required />
+            <button id="sendEmailButton">OK</button>
+        </div>
+    </div>
+<!-- Custom history icon using HTML and CSS -->
+<div class="custom-history-icon" onclick="openHistoryModal()">
+    <div class="line line1"></div>
+    <div class="line line2"></div>
+    <div class="line line3"></div>
+    <div class="line line4"></div>
+</div>
+
+
+    <!-- Modal overlay -->
+    <div class="modal-overlay" onclick="closeHistoryModal()"></div>
+
+    <!-- Modal for showing comments with filter and sort options -->
+    <div class="history-modal" id="historyCommentsModal">
+        <span class="close-btn" onclick="closeHistoryModal()">&times;</span>
+        <h3>History</h3>
+
+      <!-- Filter and Sort Options -->
+<div class="filter-options">
+    <input type="text" id="usernameFilter" placeholder="Filter by Username" class="filter-input">
+    <input type="date" id="historyStartDate" placeholder="From Date" class="filter-input">
+    <input type="date" id="historyEndDate" placeholder="To Date" class="filter-input">
+    <button onclick="toggleSortHistory()" class="filter-button">Sort <span id="historySortOrder">ASC</span></button>
+    <button onclick="filterHistoryComments()" class="filter-button">Apply Filter</button>
+</div>
+
+
+        <!-- Comments Table -->
+    <div id="draggableTableContainer">
+        <table id="commentsTable">
+            <thead>
+                <tr>
+                    <th>Username</th>
+                    <th>RCA Comment</th>
+                    <th>Resolution Comment</th>
+                    <th>Date/Time</th>
+                </tr>
+            </thead>
+            <tbody id="historyCommentsList">
+                <!-- Comments will be dynamically added here -->
+            </tbody>
+        </table>
+    </div>
+    </div>
+    <div class="rca-container">
+   <div id="rcaGraph" class="image-container">
+    <img id="graphImage" src="" alt="RCA Graph" style="display: none;">
+    
+    <!-- Canvas for PDFs -->
+    <canvas id="pdfViewer" width="100%" height="300px" style="display: none;"></canvas>
+  </div>
+
+  <div id="imageModal" class="modal">
+    <span class="close" id="closeModal">&times;</span>
+    <img class="modal-content" id="modalImage" alt="Zoomed Image">
+    
+    <!-- Canvas for modal PDF view -->
+    <canvas id="modalPdf" class="modal-content" style="display: none;" tabindex="1"></canvas>
+  </div>
+    <!-- Message Div for Feedback -->
+    <div id="message"></div>
+
+        <div class="rca-comments">
+            <h4 style="font-size: 16px;">RCA Comments</h4>
+            <textarea id="rcaComments" rows="5" cols="30" placeholder="Enter RCA comments here..." disabled ></textarea>
+
+            <h4 style="font-size: 16px;">Resolution Comments</h4>
+            <textarea id="resolutionComments" rows="5" cols="30" placeholder="Enter resolution comments here..." disabled ></textarea>
+            <button id="editResolutionComments" onclick="toggleEditComments()">Edit</button>
+            <button id="saveResolutionComments" onclick="saveComments()" style="display:none;">Save</button>
+        </div>
+
+    </div>
+  <!-- Input for Image Upload -->
+    <div class="image-upload-container">
+        <label for="imageUpload" id = "upload-label"></label>
+        <input type="file" id="upload-input" accept=".pdf, .png, .jpg, .jpeg, .gif" required>
+        <button id="saveImageBtn">Save</button>
+    </div>
+
+</div>
+
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
+    <script src="https://mozilla.github.io/pdf.js/build/pdf.js"></script>
+
+    <script src="CANVAS.js"></script>
+</body>
+</html>
